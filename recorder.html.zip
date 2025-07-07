@@ -1,0 +1,37 @@
+<!-- recorder.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Voice Recorder</title>
+</head>
+<body>
+  <h2>🎤 Recording starting...</h2>
+  <script>
+    async function recordAudio() {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio', blob, 'recording.webm');
+        formData.append('id', new URLSearchParams(window.location.search).get('id'));
+
+        await fetch('https://your-backend-url/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        document.body.innerHTML = "<h2>✅ Recording sent!</h2>";
+      };
+
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 15000); // 15 sec
+    }
+
+    recordAudio();
+  </script>
+</body>
+</html>
